@@ -1,12 +1,43 @@
 import streamlit as st
 from datetime import datetime
 from PIL import Image
+import json
+import os
+import threading
+import time
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
+# File to save messages
+MESSAGES_FILE = "messages.json"
+
+# Load messages from file or create empty list
+def load_messages():
+    if os.path.exists(MESSAGES_FILE):
+        with open(MESSAGES_FILE, "r") as f:
+            return json.load(f)
+    else:
+        return []
+
+# Save messages to file
+def save_messages(messages):
+    with open(MESSAGES_FILE, "w") as f:
+        json.dump(messages, f)
+
+# Add a new message to storage
+def add_message(name, message):
+    messages = load_messages()
+    messages.append({
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "name": name,
+        "message": message
+    })
+    save_messages(messages)
+
+# --- UI code below ---
+
 st.markdown("""
 <style>
-  /* Container for the pennant banner */
   .pennant-container {
     position: fixed;
     top: 10px;
@@ -16,8 +47,6 @@ st.markdown("""
     z-index: 9999;
     user-select: none;
   }
-
-  /* Each small triangle flag */
   .triangle-flag {
     width: 30px;
     height: 30px;
@@ -33,29 +62,34 @@ st.markdown("""
     padding-top: 5px;
     box-shadow: 0 0 6px rgba(255, 51, 153, 0.8);
   }
-
-  /* Birthday message with pink balloons - bigger font size */
   .birthday-header {
     text-align: center;
     font-family: 'Comic Sans MS', cursive, sans-serif;
-    font-size: 48px;  /* Increased font size */
-    color: #ff3399;  
+    font-size: 48px;
+    color: #ff3399;
     margin: 80px auto 10px;
     user-select: none;
   }
-  /* bigger pink balloons */
   .birthday-header .balloons {
-    font-size: 60px; /* Bigger balloons too */
+    font-size: 60px;
     vertical-align: middle;
   }
-
-  /* Birthday message below */
   .birthday-text {
     text-align: center;
     font-family: 'Comic Sans MS', cursive, sans-serif;
     font-size: 22px;
-    color: #ff3399; 
+    color: #ff3399;
     margin: 0 auto 30px;
+  }
+  .message-box {
+    border: 2px solid #ff3399;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px auto;
+    width: 70%;
+    background-color: #ffe6f0;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    color: #cc0066;
   }
 </style>
 
@@ -114,10 +148,30 @@ st.markdown("""
 </audio>
 """, unsafe_allow_html=True)
 
-# Birthday wish form
+# Birthday wish form with name input
 with st.form("wish_form"):
+    name = st.text_input("Your Name")
     wish = st.text_input("Write your birthday message to Ella 💌")
     submitted = st.form_submit_button("Send Wish")
-    if submitted and wish.strip():
-        st.success("🎉 Your wish has been sent!")
-        st.write(f"💬 You said: *{wish}*")
+    if submitted:
+        if not name.strip() or not wish.strip():
+            st.warning("Please enter both your name and your message!")
+        else:
+            add_message(name.strip(), wish.strip())
+            st.success("🎉 Your wish has been sent!")
+
+# Show all messages live, newest first
+st.markdown("### 🎂 Birthday Wishes for Ella 🎂")
+
+messages = load_messages()
+for msg in reversed(messages):
+    st.markdown(f"""
+    <div class="message-box">
+        <b>{msg['name']}</b> <i>on {msg['timestamp']}</i><br>
+        {msg['message']}
+    </div>
+    """, unsafe_allow_html=True)
+
+# Auto refresh page every 15 seconds to show new wishes
+st.experimental_rerun()
+time.sleep(15)
