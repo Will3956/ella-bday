@@ -141,7 +141,7 @@ with st.form("wish_form"):
             st.success("🎉 Your wish has been sent!")
 
 # Show all messages live, newest first
-st.markdown("### 🎂 Birthday Msg for Ella 🎂")
+st.markdown("### 🎂 Birthday Message for Ella 🎂")
 
 messages = load_messages()
 for msg in reversed(messages):
