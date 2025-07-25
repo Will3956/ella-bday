@@ -121,22 +121,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Birthday countdown
-birthday_date = datetime(2025, 7, 25)
-days_left = (birthday_date.date() - datetime.now().date()).days
-if days_left > 0:
-    st.success(f"🎁 Only {days_left} days left until Ella’s big day!")
-elif days_left == 0:
-    st.balloons()
-    st.markdown("### 🎊 It's Ella’s Birthday Today! Happy Birthday! 🎊")
-else:
-    st.info("The birthday has passed, but every day is special with Ella! 💫")
-
-# Autoplay instrumental birthday song (~30 seconds)
+# Birthday instrumental song autoplay
 st.markdown("""
-<audio autoplay>
+<audio autoplay loop>
   <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
 </audio>
 """, unsafe_allow_html=True)
 
@@ -152,7 +140,7 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# Show all messages live, newest first with updated heading
+# Show all messages live, newest first
 st.markdown("### 🎂 Birthday Msg for Ella 🎂")
 
 messages = load_messages()
