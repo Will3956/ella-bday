@@ -43,23 +43,57 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
+  .countdown-container {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    font-family: 'Comic Sans MS', cursive;
+    color: #ff3399;
+    margin-top: 150px;
+    user-select: none;
+  }
+  .countdown-item {
+    text-align: center;
+  }
+  .countdown-number {
+    font-size: 80px;
+    font-weight: bold;
+  }
+  .countdown-label {
+    font-size: 36px;
+  }
 </style>
 """, unsafe_allow_html=True)
 
 if now < target:
-    # Before May 5, 2026 - show big countdown and info
+    # Before May 5, 2026 - show spaced countdown and info
     delta = target - now
     days = delta.days
     hours, remainder = divmod(delta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
 
     st.markdown(f"""
-    <div style="text-align:center; font-family: 'Comic Sans MS', cursive; font-size: 72px; color: #ff3399; margin-top: 150px; user-select:none;">
-        ⏳ Countdown to Reveal ⏳<br>
-        <span style="font-size:96px;">{days}</span> days<br>
-        <span style="font-size:72px;">{hours:02d}</span> hrs : 
-        <span style="font-size:72px;">{minutes:02d}</span> min : 
-        <span style="font-size:72px;">{seconds:02d}</span> sec
+    <div style="text-align:center; font-family: 'Comic Sans MS', cursive; font-size: 48px; color: #ff3399; user-select:none;">
+        ⏳ Countdown to Reveal ⏳
+    </div>
+
+    <div class="countdown-container">
+      <div class="countdown-item">
+        <div class="countdown-number">{days}</div>
+        <div class="countdown-label">Days</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-number">{hours:02d}</div>
+        <div class="countdown-label">Hours</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-number">{minutes:02d}</div>
+        <div class="countdown-label">Minutes</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-number">{seconds:02d}</div>
+        <div class="countdown-label">Seconds</div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
