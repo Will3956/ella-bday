@@ -140,14 +140,14 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# Show all messages live, newest first
+# Show all messages live, newest first (without timestamp)
 st.markdown("### 🎂 Birthday Message for Ella 🎂")
 
 messages = load_messages()
 for msg in reversed(messages):
     st.markdown(f"""
     <div class="message-box">
-        <b>{msg['name']}</b> <i>on {msg['timestamp']}</i><br>
+        <b>{msg['name']}</b><br>
         {msg['message']}
     </div>
     """, unsafe_allow_html=True)
