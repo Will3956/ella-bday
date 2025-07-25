@@ -3,8 +3,7 @@ from datetime import datetime
 from PIL import Image
 import json
 import os
-import threading
-import time
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
@@ -173,5 +172,4 @@ for msg in reversed(messages):
     """, unsafe_allow_html=True)
 
 # Auto refresh page every 15 seconds to show new wishes
-st.experimental_rerun()
-time.sleep(15)
+count = st_autorefresh(interval=15_000, limit=None, key="wish_autorefresh")
