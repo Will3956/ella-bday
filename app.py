@@ -123,27 +123,20 @@ st.markdown("""
 </audio>
 """, unsafe_allow_html=True)
 
-# 🎁 Birthday countdown (for Ella - July 25)
-birthday_date = datetime(2025, 7, 25)
-days_left = (birthday_date.date() - datetime.now().date()).days
-if days_left > 0:
-    st.success(f"🎁 Only {days_left} days left until Ella’s big day!")
-elif days_left == 0:
-    st.balloons()
-    st.markdown("### 🎊 It's Ella’s Birthday Today! Happy Birthday! 🎊")
-else:
-    st.info("The birthday has passed, but every day is special with Ella! 💫")
-
-# ⏳ Countdown to May 5, 2025
-target = datetime(2025, 5, 5, 0, 0, 0)
+# Countdown to May 5, 2026
+target = datetime(2026, 5, 5, 0, 0, 0)
 now = datetime.now()
+
 if target > now:
     delta = target - now
     days = delta.days
     hours, remainder = divmod(delta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-    st.markdown(f"### ⏳ Countdown to May 5, 2025:")
-    st.info(f"**{days}** days, **{hours}** hrs, **{minutes}** min, **{seconds}** sec remaining!")
+    st.markdown("### ⏳ Countdown to Reveal (May 5, 2026):")
+    st.info(f"**{days}** days, **{hours}** hrs, **{minutes}** min, **{seconds}** sec left!")
+else:
+    st.balloons()
+    st.success("🎉 It's May 5, 2026! All messages are now visible!")
 
 # 💌 Birthday message form
 with st.form("wish_form"):
@@ -157,16 +150,19 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# 🎂 Display all wishes
-st.markdown("### 🎂 Birthday Wishes for Ella 🎂")
-messages = load_messages()
-for msg in reversed(messages):
-    st.markdown(f"""
-    <div class="message-box">
-        <b>{msg['name']}</b><br>
-        {msg['message']}
-    </div>
-    """, unsafe_allow_html=True)
+# 🎂 Display messages only if it's May 5, 2026 or later
+if now >= target:
+    st.markdown("### 🎂 Birthday Wishes for Ella 🎂")
+    messages = load_messages()
+    for msg in reversed(messages):
+        st.markdown(f"""
+        <div class="message-box">
+            <b>{msg['name']}</b><br>
+            {msg['message']}
+        </div>
+        """, unsafe_allow_html=True)
+else:
+    st.warning("🎁 Messages will be revealed on May 5, 2026! Stay tuned!")
 
-# 🔁 Auto-refresh page every 15 seconds
+# 🔁 Auto-refresh every 15 seconds
 st.markdown('<meta http-equiv="refresh" content="15">', unsafe_allow_html=True)
