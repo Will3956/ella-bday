@@ -2,12 +2,8 @@ import streamlit as st
 from datetime import datetime
 import json
 import os
-from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
-
-# Auto refresh the app every 1 second (1000 milliseconds)
-st_autorefresh(interval=1000, limit=None, key="countdown_refresh")
 
 # File to save messages
 MESSAGES_FILE = "messages.json"
@@ -86,29 +82,6 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
-  /* Countdown styles */
-  .countdown-container {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin: 40px auto;
-  }
-  .countdown-item {
-    text-align: center;
-    font-family: 'Comic Sans MS', cursive;
-    user-select: none;
-  }
-  .countdown-number {
-    font-size: 64px;
-    color: #ff3399;
-    font-weight: bold;
-    line-height: 1;
-  }
-  .countdown-label {
-    font-size: 20px;
-    color: #cc0066;
-    margin-top: 4px;
-  }
 </style>
 
 <!-- Banner -->
@@ -127,6 +100,20 @@ st.markdown("""
   <div class="triangle-flag">A</div>
   <div class="triangle-flag">Y</div>
 </div>
+
+<!-- Main Header -->
+<div class="birthday-header">
+  <span class="balloons">🎈</span>
+  Happy Birthday Ella!
+  <span class="balloons">🎈</span>
+</div>
+
+<div class="birthday-text">
+    <p>Hi Ella! 🎉</p>
+    <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
+    <p>May your day be as wonderful and bright as you are! 💖</p>
+    <p><em>With lots of love, <strong>Will</strong></em></p>
+</div>
 """, unsafe_allow_html=True)
 
 # 🎶 Background birthday song
@@ -136,63 +123,6 @@ st.markdown("""
   Your browser does not support the audio element.
 </audio>
 """, unsafe_allow_html=True)
-
-# Countdown to May 5, 2026
-target = datetime(2026, 5, 5, 0, 0, 0)
-now = datetime.now()
-
-if now < target:
-    delta = target - now
-    days = delta.days
-    hours, remainder = divmod(delta.seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-
-    st.markdown(f"""
-    <div style="text-align:center; font-family: 'Comic Sans MS', cursive; font-size: 48px; color: #ff3399; user-select:none;">
-        ⏳ Countdown to Reveal ⏳
-    </div>
-
-    <div class="countdown-container">
-      <div class="countdown-item">
-        <div class="countdown-number">{days}</div>
-        <div class="countdown-label">Days</div>
-      </div>
-      <div class="countdown-item">
-        <div class="countdown-number">{hours:02d}</div>
-        <div class="countdown-label">Hours</div>
-      </div>
-      <div class="countdown-item">
-        <div class="countdown-number">{minutes:02d}</div>
-        <div class="countdown-label">Minutes</div>
-      </div>
-      <div class="countdown-item">
-        <div class="countdown-number">{seconds:02d}</div>
-        <div class="countdown-label">Seconds</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.info("🎁 Messages and birthday greeting will be revealed on May 5, 2026! Stay tuned!")
-
-else:
-    # Show birthday greeting and messages
-    st.markdown("""
-    <div class="birthday-header">
-      <span class="balloons">🎈</span>
-      Happy Birthday Ella!
-      <span class="balloons">🎈</span>
-    </div>
-
-    <div class="birthday-text">
-        <p>Hi Ella! 🎉</p>
-        <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
-        <p>May your day be as wonderful and bright as you are! 💖</p>
-        <p><em>With lots of love, <strong>Will</strong></em></p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.balloons()
-    st.success("🎉 It's May 5, 2026! All messages are now visible!")
 
 # 💌 Birthday message form
 with st.form("wish_form"):
@@ -206,16 +136,13 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# 🎂 Display messages only if it's May 5, 2026 or later
-if now >= target:
-    st.markdown("### 🎂 Birthday Wishes for Ella 🎂")
-    messages = load_messages()
-    for msg in reversed(messages):
-        st.markdown(f"""
-        <div class="message-box">
-            <b>{msg['name']}</b><br>
-            {msg['message']}
-        </div>
-        """, unsafe_allow_html=True)
-else:
-    st.warning("🎁 Messages will be revealed on May 5, 2026! Stay tuned!")
+# 🎂 Display all messages
+st.markdown("### 🎂 Birthday Wishes for Ella 🎂")
+messages = load_messages()
+for msg in reversed(messages):
+    st.markdown(f"""
+    <div class="message-box">
+        <b>{msg['name']}</b><br>
+        {msg['message']}
+    </div>
+    """, unsafe_allow_html=True)
