@@ -1,40 +1,32 @@
 import streamlit as st
 from datetime import datetime
-from PIL import Image
 import json
 import os
-from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
 # File to save messages
 MESSAGES_FILE = "messages.json"
 
-# Load messages from file or create empty list
+# Load messages
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
         with open(MESSAGES_FILE, "r") as f:
             return json.load(f)
-    else:
-        return []
+    return []
 
-# Save messages to file
+# Save messages
 def save_messages(messages):
     with open(MESSAGES_FILE, "w") as f:
         json.dump(messages, f)
 
-# Add a new message to storage
+# Add new message
 def add_message(name, message):
     messages = load_messages()
-    messages.append({
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "name": name,
-        "message": message
-    })
+    messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# --- UI code below ---
-
+# CSS and layout
 st.markdown("""
 <style>
   .pennant-container {
@@ -52,7 +44,7 @@ st.markdown("""
     background: linear-gradient(135deg, #ff3399, #cc0066);
     clip-path: polygon(0 0, 100% 0, 50% 100%);
     color: white;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     font-weight: bold;
     font-size: 18px;
     display: flex;
@@ -63,7 +55,7 @@ st.markdown("""
   }
   .birthday-header {
     text-align: center;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     font-size: 48px;
     color: #ff3399;
     margin: 80px auto 10px;
@@ -75,7 +67,7 @@ st.markdown("""
   }
   .birthday-text {
     text-align: center;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     font-size: 22px;
     color: #ff3399;
     margin: 0 auto 30px;
@@ -87,11 +79,12 @@ st.markdown("""
     margin: 10px auto;
     width: 70%;
     background-color: #ffe6f0;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
 </style>
 
+<!-- Banner -->
 <div class="pennant-container">
   <div class="triangle-flag">H</div>
   <div class="triangle-flag">A</div>
@@ -108,6 +101,7 @@ st.markdown("""
   <div class="triangle-flag">Y</div>
 </div>
 
+<!-- Main Header -->
 <div class="birthday-header">
   <span class="balloons">🎈</span>
   Happy Birthday Ella!
@@ -122,13 +116,14 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Image uploader
-uploaded_image = st.file_uploader("Upload a special photo for Ella (optional)", type=["png", "jpg", "jpeg"])
-if uploaded_image:
-    img = Image.open(uploaded_image)
-    st.image(img, caption="🎂 Ella's Special Moment", use_column_width=True)
+# 🎶 Background birthday song
+st.markdown("""
+<audio autoplay>
+  <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
+</audio>
+""", unsafe_allow_html=True)
 
-# Birthday countdown
+# 🎁 Birthday countdown (for Ella - July 25)
 birthday_date = datetime(2025, 7, 25)
 days_left = (birthday_date.date() - datetime.now().date()).days
 if days_left > 0:
@@ -139,15 +134,18 @@ elif days_left == 0:
 else:
     st.info("The birthday has passed, but every day is special with Ella! 💫")
 
-# Autoplay instrumental birthday song (~30 seconds)
-st.markdown("""
-<audio autoplay>
-  <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
-""", unsafe_allow_html=True)
+# ⏳ Countdown to May 5, 2025
+target = datetime(2025, 5, 5, 0, 0, 0)
+now = datetime.now()
+if target > now:
+    delta = target - now
+    days = delta.days
+    hours, remainder = divmod(delta.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    st.markdown(f"### ⏳ Countdown to May 5, 2025:")
+    st.info(f"**{days}** days, **{hours}** hrs, **{minutes}** min, **{seconds}** sec remaining!")
 
-# Birthday wish form with name input
+# 💌 Birthday message form
 with st.form("wish_form"):
     name = st.text_input("Your Name")
     wish = st.text_input("Write your birthday message to Ella 💌")
@@ -159,17 +157,16 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# Show all messages live, newest first
+# 🎂 Display all wishes
 st.markdown("### 🎂 Birthday Wishes for Ella 🎂")
-
 messages = load_messages()
 for msg in reversed(messages):
     st.markdown(f"""
     <div class="message-box">
-        <b>{msg['name']}</b> <i>on {msg['timestamp']}</i><br>
+        <b>{msg['name']}</b><br>
         {msg['message']}
     </div>
     """, unsafe_allow_html=True)
 
-# Auto refresh page every 15 seconds to show new wishes
-count = st_autorefresh(interval=15_000, limit=None, key="wish_autorefresh")
+# 🔁 Auto-refresh page every 15 seconds
+st.markdown('<meta http-equiv="refresh" content="15">', unsafe_allow_html=True)
