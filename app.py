@@ -2,8 +2,12 @@ import streamlit as st
 from datetime import datetime
 import json
 import os
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
+
+# Auto refresh the app every 1 second (1000 milliseconds)
+st_autorefresh(interval=1000, limit=None, key="countdown_refresh")
 
 # File to save messages
 MESSAGES_FILE = "messages.json"
@@ -26,13 +30,52 @@ def add_message(name, message):
     messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# Reveal target date
-target = datetime(2026, 5, 5, 0, 0, 0)
-now = datetime.now()
-
-# CSS style for message box
+# CSS and layout
 st.markdown("""
 <style>
+  .pennant-container {
+    position: fixed;
+    top: 10px;
+    right: 150px;
+    display: flex;
+    gap: 4px;
+    z-index: 9999;
+    user-select: none;
+  }
+  .triangle-flag {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #ff3399, #cc0066);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    color: white;
+    font-family: 'Comic Sans MS', cursive;
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 5px;
+    box-shadow: 0 0 6px rgba(255, 51, 153, 0.8);
+  }
+  .birthday-header {
+    text-align: center;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 48px;
+    color: #ff3399;
+    margin: 80px auto 10px;
+    user-select: none;
+  }
+  .birthday-header .balloons {
+    font-size: 60px;
+    vertical-align: middle;
+  }
+  .birthday-text {
+    text-align: center;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 22px;
+    color: #ff3399;
+    margin: 0 auto 30px;
+  }
   .message-box {
     border: 2px solid #ff3399;
     border-radius: 10px;
@@ -43,30 +86,62 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
+  /* Countdown styles */
   .countdown-container {
     display: flex;
     justify-content: center;
-    gap: 80px;
-    font-family: 'Comic Sans MS', cursive;
-    color: #ff3399;
-    margin-top: 150px;
-    user-select: none;
+    gap: 30px;
+    margin: 40px auto;
   }
   .countdown-item {
     text-align: center;
+    font-family: 'Comic Sans MS', cursive;
+    user-select: none;
   }
   .countdown-number {
-    font-size: 80px;
+    font-size: 64px;
+    color: #ff3399;
     font-weight: bold;
+    line-height: 1;
   }
   .countdown-label {
-    font-size: 36px;
+    font-size: 20px;
+    color: #cc0066;
+    margin-top: 4px;
   }
 </style>
+
+<!-- Banner -->
+<div class="pennant-container">
+  <div class="triangle-flag">H</div>
+  <div class="triangle-flag">A</div>
+  <div class="triangle-flag">P</div>
+  <div class="triangle-flag">P</div>
+  <div class="triangle-flag">Y</div>
+  <div class="triangle-flag">B</div>
+  <div class="triangle-flag">I</div>
+  <div class="triangle-flag">R</div>
+  <div class="triangle-flag">T</div>
+  <div class="triangle-flag">H</div>
+  <div class="triangle-flag">D</div>
+  <div class="triangle-flag">A</div>
+  <div class="triangle-flag">Y</div>
+</div>
 """, unsafe_allow_html=True)
 
+# 🎶 Background birthday song
+st.markdown("""
+<audio autoplay loop>
+  <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+""", unsafe_allow_html=True)
+
+# Countdown to May 5, 2026
+target = datetime(2026, 5, 5, 0, 0, 0)
+now = datetime.now()
+
 if now < target:
-    # Before May 5, 2026 - show spaced countdown and info
     delta = target - now
     days = delta.days
     hours, remainder = divmod(delta.seconds, 3600)
@@ -100,72 +175,8 @@ if now < target:
     st.info("🎁 Messages and birthday greeting will be revealed on May 5, 2026! Stay tuned!")
 
 else:
-    # On or after May 5, 2026 - show full birthday greeting & wishes
-
-    # Pennant banner and header + message
+    # Show birthday greeting and messages
     st.markdown("""
-    <style>
-      .pennant-container {
-        position: fixed;
-        top: 10px;
-        right: 150px;
-        display: flex;
-        gap: 4px;
-        z-index: 9999;
-        user-select: none;
-      }
-      .triangle-flag {
-        width: 30px;
-        height: 30px;
-        background: linear-gradient(135deg, #ff3399, #cc0066);
-        clip-path: polygon(0 0, 100% 0, 50% 100%);
-        color: white;
-        font-family: 'Comic Sans MS', cursive;
-        font-weight: bold;
-        font-size: 18px;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding-top: 5px;
-        box-shadow: 0 0 6px rgba(255, 51, 153, 0.8);
-      }
-      .birthday-header {
-        text-align: center;
-        font-family: 'Comic Sans MS', cursive;
-        font-size: 48px;
-        color: #ff3399;
-        margin: 80px auto 10px;
-        user-select: none;
-      }
-      .birthday-header .balloons {
-        font-size: 60px;
-        vertical-align: middle;
-      }
-      .birthday-text {
-        text-align: center;
-        font-family: 'Comic Sans MS', cursive;
-        font-size: 22px;
-        color: #ff3399;
-        margin: 0 auto 30px;
-      }
-    </style>
-
-    <div class="pennant-container">
-      <div class="triangle-flag">H</div>
-      <div class="triangle-flag">A</div>
-      <div class="triangle-flag">P</div>
-      <div class="triangle-flag">P</div>
-      <div class="triangle-flag">Y</div>
-      <div class="triangle-flag">B</div>
-      <div class="triangle-flag">I</div>
-      <div class="triangle-flag">R</div>
-      <div class="triangle-flag">T</div>
-      <div class="triangle-flag">H</div>
-      <div class="triangle-flag">D</div>
-      <div class="triangle-flag">A</div>
-      <div class="triangle-flag">Y</div>
-    </div>
-
     <div class="birthday-header">
       <span class="balloons">🎈</span>
       Happy Birthday Ella!
@@ -180,26 +191,23 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # Birthday song autoplay
-    st.markdown("""
-    <audio autoplay>
-      <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
-    </audio>
-    """, unsafe_allow_html=True)
+    st.balloons()
+    st.success("🎉 It's May 5, 2026! All messages are now visible!")
 
-    # Birthday message form
-    with st.form("wish_form"):
-        name = st.text_input("Your Name")
-        wish = st.text_input("Write your birthday message to Ella 💌")
-        submitted = st.form_submit_button("Send Wish")
-        if submitted:
-            if not name.strip() or not wish.strip():
-                st.warning("Please enter both your name and your message!")
-            else:
-                add_message(name.strip(), wish.strip())
-                st.success("🎉 Your wish has been sent!")
+# 💌 Birthday message form
+with st.form("wish_form"):
+    name = st.text_input("Your Name")
+    wish = st.text_input("Write your birthday message to Ella 💌")
+    submitted = st.form_submit_button("Send Wish")
+    if submitted:
+        if not name.strip() or not wish.strip():
+            st.warning("Please enter both your name and your message!")
+        else:
+            add_message(name.strip(), wish.strip())
+            st.success("🎉 Your wish has been sent!")
 
-    # Display saved messages
+# 🎂 Display messages only if it's May 5, 2026 or later
+if now >= target:
     st.markdown("### 🎂 Birthday Wishes for Ella 🎂")
     messages = load_messages()
     for msg in reversed(messages):
@@ -209,6 +217,5 @@ else:
             {msg['message']}
         </div>
         """, unsafe_allow_html=True)
-
-# Auto-refresh every 15 seconds
-st.markdown('<meta http-equiv="refresh" content="15">', unsafe_allow_html=True)
+else:
+    st.warning("🎁 Messages will be revealed on May 5, 2026! Stay tuned!")
