@@ -1,35 +1,33 @@
 import streamlit as st
-from datetime import datetime
 import json
 import os
+import time
+from datetime import datetime
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
-# File to save messages
 MESSAGES_FILE = "messages.json"
 
-# Load messages from file
+# Functions for message handling
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
-        with open(MESSAGES_FILE, "r") as f:
-            try:
+        try:
+            with open(MESSAGES_FILE, "r") as f:
                 return json.load(f)
-            except json.JSONDecodeError:
-                return []
+        except json.JSONDecodeError:
+            return []
     return []
 
-# Save messages to file
 def save_messages(messages):
     with open(MESSAGES_FILE, "w") as f:
         json.dump(messages, f)
 
-# Add a new message
 def add_message(name, message):
     messages = load_messages()
     messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# CSS for styling
+# Custom CSS for styling and hidden login
 st.markdown("""
 <style>
   .pennant-container {
@@ -59,9 +57,9 @@ st.markdown("""
   .birthday-header {
     text-align: center;
     font-family: 'Comic Sans MS', cursive;
-    font-size: 48px;
+    font-size: 56px;
     color: #ff3399;
-    margin: 80px auto 10px;
+    margin: 100px auto 20px;
     user-select: none;
   }
   .birthday-header .balloons {
@@ -85,11 +83,31 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
+  #hidden-login {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    appearance: none;
+    z-index: 10000;
+    cursor: default;
+    user-select: none;
+  }
+  #hidden-login:hover {
+    background: transparent !important;
+  }
+  #hidden-login:focus {
+    outline: none;
+    box-shadow: none;
+  }
 </style>
-""", unsafe_allow_html=True)
 
-# Banner
-st.markdown("""
+<!-- Banner -->
 <div class="pennant-container">
   <div class="triangle-flag">H</div>
   <div class="triangle-flag">A</div>
@@ -106,41 +124,57 @@ st.markdown("""
   <div class="triangle-flag">Y</div>
 </div>
 
+<!-- Hidden login button -->
+<button id="hidden-login"></button>
+
+<!-- Header -->
 <div class="birthday-header">
   <span class="balloons">🎈</span>
   Happy Birthday Ella!
   <span class="balloons">🎈</span>
 </div>
 
+<!-- Messages from Will and Charlie -->
 <div class="birthday-text">
-    <p>Hi Ella! 🎉</p>
-    <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
-    <p>May your day be as wonderful and bright as you are! 💖</p>
-    <p><em>With lots of love, <strong>Will</strong></em></p>
+  <p>Hi Ella! 🎉</p>
+  <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
+  <p>May your day be as wonderful and bright as you are! 💖</p>
+  <p><em>With lots of love, <strong>Will</strong></em></p>
+  <br>
+  <p>🎉 Happy 16th Birthday, Ella! 🎂️✈️</p>
+  <p>Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world—can’t wait to see where you go next. Keep shining and exploring, globe-trotter! 🌍</p>
+  <p><em>Lots of love, <strong>Charlie</strong></em></p>
 </div>
+
+<!-- Music -->
+<audio autoplay>
+  <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
+</audio>
 """, unsafe_allow_html=True)
 
-# Birthday message form and display
+# Message form
 with st.form("wish_form"):
     name = st.text_input("Your Name")
     wish = st.text_input("Write your birthday message to Ella 💌")
-    submitted = st.form_submit_button("Send Wish")
-    if submitted:
-        if not name.strip() or not wish.strip():
-            st.warning("Please enter both your name and your message!")
-        else:
+    if st.form_submit_button("Send Wish"):
+        if name.strip() and wish.strip():
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
+        else:
+            st.warning("Please fill out both fields.")
 
-st.markdown("### 🎂 Birthday Messages for Ella 🎂")
-messages = load_messages()
-for msg in reversed(messages):
-    st.markdown(f"""
-    <div class="message-box">
-        <b>{msg['name']}</b><br>
-        {msg['message']}
-    </div>
-    """, unsafe_allow_html=True)
+# Real-time message updates
+message_container = st.empty()
 
-# Auto refresh messages every 10 seconds (partial refresh)
-st.markdown('<meta http-equiv="refresh" content="10">', unsafe_allow_html=True)
+for _ in range(300):  # Loop with ~5 minutes max
+    messages = load_messages()
+    with message_container.container():
+        st.markdown("### 🎂 Birthday Messages for Ella 🎂")
+        for msg in reversed(messages):
+            st.markdown(f"""
+            <div class='message-box'>
+                <b>{msg['name']}</b><br>
+                {msg['message']}
+            </div>
+            """, unsafe_allow_html=True)
+    time.sleep(1)
