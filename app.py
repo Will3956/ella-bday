@@ -124,24 +124,45 @@ def render_main_content():
     </div>
     """, unsafe_allow_html=True)
 
-# SESSION STATE INITIALIZATION
+def display_messages(container):
+    messages = load_messages()
+    with container:
+        st.markdown("### 🎂 Birthday Messages for Ella 🎂")
+        for msg in reversed(messages):
+            st.markdown(f"""
+            <div style="
+                border: 2px solid #ff3399;
+                border-radius: 10px;
+                padding: 10px;
+                margin: 10px auto;
+                width: 70%;
+                background-color: #ffe6f0;
+                font-family: 'Comic Sans MS', cursive;
+                color: #cc0066;
+                ">
+                <b>{msg['name']}</b><br>
+                {msg['message']}
+            </div>
+            """)
+
+# SESSION STATE
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "show_login" not in st.session_state:
     st.session_state.show_login = False
 
-# Hidden login button at top-left corner (invisible)
+# Hidden login button top-left corner (invisible)
 st.markdown("""
 <style>
   #hidden-login {
     position: fixed;
     top: 0;
     left: 0;
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     background: transparent;
     border: none;
-    z-index: 10000;
+    z-index: 99999;
     cursor: pointer;
   }
   #hidden-login:focus {
@@ -156,33 +177,19 @@ if login_clicked:
     st.session_state.show_login = True
 
 if st.session_state.show_login and not st.session_state.logged_in:
-    pwd = st.text_input("Enter password to login:", type="password", key="pwd_input")
+    pwd = st.text_input("Enter admin password:", type="password", key="pwd_input")
     if pwd:
         if pwd == PASSWORD:
             st.session_state.logged_in = True
-            st.success("Logged in successfully!")
+            st.success("Welcome, Admin! 👑")
         else:
-            st.error("Wrong password!")
+            st.error("Incorrect password!")
 
-# Main container for birthday page messages (partial refresh)
-message_refresher = st_autorefresh(interval=5_000, limit=None, key="message_refresher")
+# Autorefresh interval (5 seconds)
+interval = 5_000
 
-messages_container = st.empty()
-
-def display_messages():
-    messages = load_messages()
-    with messages_container.container():
-        st.markdown("### 🎂 Birthday Messages for Ella 🎂")
-        for msg in reversed(messages):
-            st.markdown(f"""
-            <div class="message-box">
-                <b>{msg['name']}</b><br>
-                {msg['message']}
-            </div>
-            """, unsafe_allow_html=True)
-
-# If NOT logged in: show main site content + messages + form
 if not st.session_state.logged_in:
+    # Main site with message form and messages
     render_main_content()
 
     with st.form("wish_form"):
@@ -196,48 +203,90 @@ if not st.session_state.logged_in:
                 add_message(name.strip(), wish.strip())
                 st.success("🎉 Your wish has been sent!")
 
-    display_messages()
+    message_refresher = st_autorefresh(interval=interval, limit=None, key="msg_refresh")
 
-# If logged in: show admin panel with different background + IP info + live preview
+    messages_container = st.empty()
+    display_messages(messages_container)
+
 else:
+    # Admin panel with modern styling
     st.markdown("""
     <style>
-      .admin-panel {
-        background-color: #fce4ec;  /* pastel pink */
-        padding: 15px;
-        border-radius: 10px;
+      body, .main {
+        background-color: #1f2937;  /* Dark slate */
+        color: #e0e7ff;  /* Light lavender */
+      }
+      .admin-header {
+        font-size: 32px;
+        font-weight: 700;
         margin-bottom: 20px;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center;
+        color: #c7d2fe;
       }
-      .ip-info {
-        font-size: 14px;
-        color: #880e4f;
+      .card {
+        background-color: #374151;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        margin-bottom: 25px;
+      }
+      .ip-info-title {
+        font-weight: 600;
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: #a5b4fc;
+      }
+      .ban-btn {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: 10px;
+      }
+      .ban-btn:hover {
+        background-color: #b91c1c;
+      }
+      .site-preview {
+        background-color: #111827;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+        max-height: 600px;
+        overflow-y: auto;
       }
     </style>
     """, unsafe_allow_html=True)
 
-    # Container for admin panel with IP info + live preview
-    with st.container():
-        st.markdown('<div class="admin-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="admin-header">Admin Panel - IP Tracking & Live Preview</div>')
 
-        # Show IP info at top
+    # Admin panel container
+    with st.container():
+        # IP info card
         ip = requests.get("https://api.ipify.org").text
         ip_info = get_ip_info(ip)
 
-        st.markdown(f"### Admin Panel - IP Tracking & Site Preview")
-        st.markdown(f"**Your IP:** {ip}")
-        st.markdown("**IP Info:**")
-        st.json(ip_info)
-
-        # Show Ban IP button for demo (no backend ban logic here)
-        if st.button("Ban this IP"):
-            st.warning(f"IP {ip} banned! (demo only)")
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Live preview container with partial refresh every 5 seconds
-        preview_refresher = st_autorefresh(interval=5_000, limit=None, key="preview_refresher")
         with st.container():
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+            st.markdown(f'<div class="ip-info-title">Your IP Information</div>', unsafe_allow_html=True)
+            st.markdown(f"**IP Address:** {ip}")
+            st.json(ip_info)
+
+            if st.button("Ban this IP"):
+                st.warning(f"IP {ip} banned! (placeholder, no backend)")
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Live site preview card
+        preview_refresher = st_autorefresh(interval=interval, limit=None, key="preview_refresh")
+        with st.container():
+            st.markdown('<div class="card site-preview">', unsafe_allow_html=True)
             st.markdown("### Live Site Preview")
             render_main_content()
-            display_messages()
+            messages_preview = st.container()
+            display_messages(messages_preview)
+            st.markdown('</div>', unsafe_allow_html=True)
