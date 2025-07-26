@@ -116,7 +116,7 @@ st.markdown("""
     <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
     <p>May your day be as wonderful and bright as you are! 💖</p>
     <p><em>With lots of love, <strong>Will</strong></em></p>
-    <hr style="width:50%; border:1px solid #ff3399;">
+    <hr style="width:100%; border:1px solid #ff3399;">
     <p>🎉 Happy 16th Birthday, Ella! 🎂✈️</p>
     <p>Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world—can’t wait to see where you go next. Keep shining and exploring, globe-trotter! 🌍</p>
     <p><em>With lots of love, <strong>Charlie</strong></em></p>
