@@ -9,31 +9,38 @@ st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", lay
 # File to save messages
 MESSAGES_FILE = "messages.json"
 
-# Load messages
+# Load messages from file
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
-        try:
-            with open(MESSAGES_FILE, "r") as f:
+        with open(MESSAGES_FILE, "r") as f:
+            try:
                 return json.load(f)
-        except json.JSONDecodeError:
-            return []
+            except json.JSONDecodeError:
+                return []
     return []
 
-# Save messages
+# Save messages to file
 def save_messages(messages):
     with open(MESSAGES_FILE, "w") as f:
         json.dump(messages, f)
 
-# Add new message
+# Add a new message
 def add_message(name, message):
     messages = load_messages()
     messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# Hidden login password
-PASSWORD = "P1cklesC@t"
+# Get IP info (using ipinfo.io API)
+def get_ip_info(ip):
+    try:
+        response = requests.get(f"https://ipinfo.io/{ip}/json")
+        if response.status_code == 200:
+            return response.json()
+    except Exception:
+        pass
+    return {}
 
-# CSS for the page + hidden login button top-left corner
+# CSS for the page and hidden login button
 st.markdown("""
 <style>
   .pennant-container {
@@ -89,7 +96,7 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
-  /* Hidden login button: completely invisible, no pointer change */
+  /* Hidden login button */
   #hidden-login {
     position: fixed;
     top: 0;
@@ -98,16 +105,65 @@ st.markdown("""
     height: 30px;
     background: transparent;
     border: none;
+    outline: none;
+    box-shadow: none;
+    appearance: none;
     z-index: 10000;
-    cursor: default;
+    cursor: pointer;
+    /* Remove any tooltip or hover text */
+  }
+  #hidden-login:focus {
     outline: none;
   }
-  #hidden-login:hover {
-    background: transparent !important;
-  }
 </style>
+""", unsafe_allow_html=True)
 
-<!-- Banner -->
+# Hidden login button (completely invisible, no tooltip)
+hidden_password = "P1cklesC@t"
+
+# Render the hidden button
+clicked = st.button(" ", key="hidden-login", help=None)
+
+# Trick to add the ID and attributes to the button element to prevent tooltip:
+st.markdown("""
+<script>
+const btn = window.parent.document.querySelector('button[kind="primary"][data-testid="stButton"][id^="hidden-login"]');
+if (btn) {
+  btn.id = 'hidden-login';
+  btn.title = '';
+  btn.setAttribute('aria-label', '');
+</script>
+""", unsafe_allow_html=True)
+
+if clicked:
+    pwd = st.text_input("Enter password to login:", type="password")
+    if pwd == hidden_password:
+        st.success("Login successful!")
+        # Show IP info & preview here (simplified example)
+        ip = st.text_input("Enter IP to lookup (or leave empty for your IP):").strip()
+        if not ip:
+            try:
+                ip = requests.get("https://api.ipify.org").text
+            except:
+                ip = "Unknown"
+        ip_info = get_ip_info(ip)
+        st.write(f"IP Info for {ip}:")
+        st.json(ip_info)
+        # Preview message box for the site (simplified)
+        st.markdown("<h3>Site Preview</h3>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style='border: 2px solid #ff3399; border-radius:10px; padding:10px; background:#ffe6f0; color:#cc0066; font-family: Comic Sans MS, cursive; width: 70%; margin: 10px auto;'>
+            <b>Charlie</b><br>
+            🎉 Happy 16th Birthday, Ella! 🎂✈️<br>
+            Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world—can’t wait to see where you go next. Keep shining and exploring, globe-trotter! 🌍<br>
+            <em>Lots of love, Charlie</em>
+        </div>
+        """, unsafe_allow_html=True)
+    elif pwd:
+        st.error("Wrong password!")
+
+# Banner
+st.markdown("""
 <div class="pennant-container">
   <div class="triangle-flag">H</div>
   <div class="triangle-flag">A</div>
@@ -124,7 +180,6 @@ st.markdown("""
   <div class="triangle-flag">Y</div>
 </div>
 
-<!-- Main Header -->
 <div class="birthday-header">
   <span class="balloons">🎈</span>
   Happy Birthday Ella!
@@ -135,52 +190,11 @@ st.markdown("""
     <p>Hi Ella! 🎉</p>
     <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
     <p>May your day be as wonderful and bright as you are! 💖</p>
-    <p><em>With lots of love, <strong>Charlie</strong></em></p>
+    <p><em>With lots of love, <strong>Will</strong></em></p>
 </div>
 """, unsafe_allow_html=True)
 
-# 🎶 Background birthday song
-st.markdown("""
-<audio autoplay>
-  <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
-</audio>
-""", unsafe_allow_html=True)
-
-# Hidden login button form
-login_clicked = st.button("", key="hidden-login")
-
-if login_clicked:
-    password_input = st.text_input("Enter admin password:", type="password")
-    if password_input == PASSWORD:
-        st.success("Access granted! Here is the admin panel:")
-        
-        # Get visitor IP (may depend on hosting environment)
-        try:
-            ip_req = requests.get('https://api.ipify.org?format=json')
-            ip = ip_req.json().get("ip", "Unknown IP")
-        except Exception:
-            ip = "Unable to fetch IP"
-        st.write(f"Visitor IP: {ip}")
-        
-        # Try getting geolocation info
-        try:
-            geo_req = requests.get(f'https://ipapi.co/{ip}/json/')
-            geo_data = geo_req.json()
-            city = geo_data.get("city", "Unknown")
-            region = geo_data.get("region", "Unknown")
-            country = geo_data.get("country_name", "Unknown")
-            st.write(f"Location: {city}, {region}, {country}")
-        except Exception:
-            st.write("Unable to fetch geolocation data.")
-        
-        # Show a preview of the site inside an iframe
-        st.markdown("### Site Preview:")
-        st.components.v1.iframe("https://your-site-url.com", height=500)  # Replace with actual deployed site URL
-        
-    elif password_input:
-        st.error("Wrong password!")
-
-# 💌 Birthday message form
+# Birthday message form and display
 with st.form("wish_form"):
     name = st.text_input("Your Name")
     wish = st.text_input("Write your birthday message to Ella 💌")
@@ -192,9 +206,7 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# 🎂 Display birthday messages
 st.markdown("### 🎂 Birthday Messages for Ella 🎂")
-
 messages = load_messages()
 for msg in reversed(messages):
     st.markdown(f"""
@@ -204,5 +216,5 @@ for msg in reversed(messages):
     </div>
     """, unsafe_allow_html=True)
 
-# Auto-refresh every 5 seconds to update messages
-st.experimental_rerun()
+# Auto refresh messages every 10 seconds (partial refresh)
+st.markdown('<meta http-equiv="refresh" content="10">', unsafe_allow_html=True)
