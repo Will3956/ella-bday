@@ -6,73 +6,34 @@ import requests
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
-# --- Hidden Admin Login Button & Panel ---
-
-# CSS for hidden login button top-left corner
-st.markdown("""
-<style>
-#hidden-login {
-    position: fixed;
-    top: 5px;
-    left: 5px;
-    width: 40px;
-    height: 40px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    z-index: 10000;
-}
-#hidden-login:hover {
-    background: rgba(255, 51, 153, 0.2);
-    border-radius: 8px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-if 'show_admin' not in st.session_state:
-    st.session_state['show_admin'] = False
-if 'admin_pw_input' not in st.session_state:
-    st.session_state['admin_pw_input'] = ""
-
-# Hidden login button triggers password input
-if st.button(" ", key="hidden-login", help="Admin login (hidden)"):
-    st.session_state['admin_pw_input'] = st.text_input("Enter admin password:", type="password")
-
-# If password entered, check it
-if st.session_state.get('admin_pw_input'):
-    if st.session_state['admin_pw_input'] == "P1cklesC@t":
-        st.session_state['show_admin'] = True
-        st.success("🔓 Access granted!")
-        st.session_state['admin_pw_input'] = ""  # reset input after success
-    else:
-        st.error("❌ Wrong password!")
-        st.session_state['admin_pw_input'] = ""  # reset input on fail
-
-# --- Messages storage ---
-
+# File to save messages
 MESSAGES_FILE = "messages.json"
 
+# Load messages
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
         try:
             with open(MESSAGES_FILE, "r") as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            # If file is corrupt, start fresh
             return []
     return []
 
+# Save messages
 def save_messages(messages):
     with open(MESSAGES_FILE, "w") as f:
         json.dump(messages, f)
 
+# Add new message
 def add_message(name, message):
     messages = load_messages()
     messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# --- CSS and layout for main app ---
+# Hidden login password
+PASSWORD = "P1cklesC@t"
 
+# CSS for the page + hidden login button top-left corner
 st.markdown("""
 <style>
   .pennant-container {
@@ -128,6 +89,22 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
+  /* Hidden login button */
+  #hidden-login {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 10000;
+  }
+  #hidden-login:hover {
+    background: rgba(255, 51, 153, 0.15);
+    border-radius: 5px;
+  }
 </style>
 
 <!-- Banner -->
@@ -158,7 +135,7 @@ st.markdown("""
     <p>Hi Ella! 🎉</p>
     <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
     <p>May your day be as wonderful and bright as you are! 💖</p>
-    <p><em>With lots of love, <strong>Will</strong></em></p>
+    <p><em>With lots of love, <strong>Charlie</strong></em></p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -169,8 +146,41 @@ st.markdown("""
 </audio>
 """, unsafe_allow_html=True)
 
-# --- Birthday messages form ---
+# Hidden login button form
+login_clicked = st.button(" ", key="hidden-login", help="Hidden admin login (top-left corner)")
 
+if login_clicked:
+    password_input = st.text_input("Enter admin password:", type="password")
+    if password_input == PASSWORD:
+        st.success("Access granted! Here is the admin panel:")
+        
+        # Get visitor IP (may depend on hosting environment)
+        try:
+            ip_req = requests.get('https://api.ipify.org?format=json')
+            ip = ip_req.json().get("ip", "Unknown IP")
+        except Exception:
+            ip = "Unable to fetch IP"
+        st.write(f"Visitor IP: {ip}")
+        
+        # Try getting geolocation info
+        try:
+            geo_req = requests.get(f'https://ipapi.co/{ip}/json/')
+            geo_data = geo_req.json()
+            city = geo_data.get("city", "Unknown")
+            region = geo_data.get("region", "Unknown")
+            country = geo_data.get("country_name", "Unknown")
+            st.write(f"Location: {city}, {region}, {country}")
+        except Exception:
+            st.write("Unable to fetch geolocation data.")
+        
+        # Show a preview of the site inside an iframe
+        st.markdown("### Site Preview:")
+        st.components.v1.iframe("https://your-site-url.com", height=500)  # Replace with actual deployed site URL
+        
+    elif password_input:
+        st.error("Wrong password!")
+
+# 💌 Birthday message form
 with st.form("wish_form"):
     name = st.text_input("Your Name")
     wish = st.text_input("Write your birthday message to Ella 💌")
@@ -182,8 +192,7 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# --- Show birthday messages live ---
-
+# 🎂 Display birthday messages
 st.markdown("### 🎂 Birthday Messages for Ella 🎂")
 
 messages = load_messages()
@@ -195,47 +204,5 @@ for msg in reversed(messages):
     </div>
     """, unsafe_allow_html=True)
 
-# --- Auto-refresh messages every 5 seconds using Streamlit's experimental_rerun ---
-
-import time
-
-# Run this only if not in admin mode to avoid interrupting admin panel usage
-if not st.session_state['show_admin']:
-    time.sleep(5)
-    st.experimental_rerun()
-
-# --- Admin Panel (if logged in) ---
-
-if st.session_state['show_admin']:
-    st.markdown("---")
-    st.markdown("## 🔐 Admin Panel")
-
-    # Get visitor IP via public API
-    try:
-        ip = requests.get("https://api.ipify.org").text
-        st.write(f"**Visitor IP:** {ip}")
-    except Exception:
-        st.error("Could not fetch IP address.")
-
-    # Get IP geolocation from ipinfo.io
-    try:
-        res = requests.get(f"https://ipinfo.io/{ip}/json")
-        geo = res.json()
-        loc = geo.get("loc", "")
-        city = geo.get("city", "Unknown city")
-        region = geo.get("region", "Unknown region")
-        country = geo.get("country", "Unknown country")
-        st.write(f"**Location:** {city}, {region}, {country}")
-        if loc:
-            lat, lon = loc.split(",")
-            # OpenStreetMap embed URL for small map
-            map_url = f"https://www.openstreetmap.org/export/embed.html?bbox={float(lon)-0.05}%2C{float(lat)-0.05}%2C{float(lon)+0.05}%2C{float(lat)+0.05}&layer=mapnik&marker={lat}%2C{lon}"
-            st.markdown(f'<iframe width="100%" height="300" src="{map_url}"></iframe>', unsafe_allow_html=True)
-    except Exception:
-        st.error("Could not fetch location data.")
-
-    # Site preview iframe (replace URL with your actual site URL or GitHub Pages URL)
-    st.markdown("### 🌐 Site Preview")
-    st.markdown("""
-    <iframe src="https://your-site-url-or-github-page" width="100%" height="400" style="border:1px solid #ff3399; border-radius:10px;"></iframe>
-    """, unsafe_allow_html=True)
+# Auto-refresh every 5 seconds to update messages
+st.experimental_rerun()
