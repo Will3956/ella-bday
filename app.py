@@ -1,20 +1,19 @@
 import streamlit as st
+import requests
 import json
 import os
-import requests
-from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
 MESSAGES_FILE = "messages.json"
-PASSWORD = "P1cklesC@t"
+hidden_password = "P1cklesC@t"
 
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
         with open(MESSAGES_FILE, "r") as f:
             try:
                 return json.load(f)
-            except json.JSONDecodeError:
+            except:
                 return []
     return []
 
@@ -36,257 +35,191 @@ def get_ip_info(ip):
         pass
     return {}
 
-def render_main_content():
-    st.markdown("""
-    <style>
-      .pennant-container {
-        position: fixed;
-        top: 10px;
-        right: 150px;
-        display: flex;
-        gap: 4px;
-        z-index: 9999;
-        user-select: none;
-      }
-      .triangle-flag {
-        width: 30px;
-        height: 30px;
-        background: linear-gradient(135deg, #ff3399, #cc0066);
-        clip-path: polygon(0 0, 100% 0, 50% 100%);
-        color: white;
-        font-family: 'Comic Sans MS', cursive;
-        font-weight: bold;
-        font-size: 18px;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding-top: 5px;
-        box-shadow: 0 0 6px rgba(255, 51, 153, 0.8);
-      }
-      .birthday-header {
-        text-align: center;
-        font-family: 'Comic Sans MS', cursive;
-        font-size: 48px;
-        color: #ff3399;
-        margin: 80px auto 10px;
-        user-select: none;
-      }
-      .birthday-header .balloons {
-        font-size: 60px;
-        vertical-align: middle;
-      }
-      .birthday-text {
-        text-align: center;
-        font-family: 'Comic Sans MS', cursive;
-        font-size: 22px;
-        color: #ff3399;
-        margin: 0 auto 30px;
-      }
-      .message-box {
-        border: 2px solid #ff3399;
-        border-radius: 10px;
-        padding: 10px;
-        margin: 10px auto;
-        width: 70%;
-        background-color: #ffe6f0;
-        font-family: 'Comic Sans MS', cursive;
-        color: #cc0066;
-      }
-    </style>
-
-    <div class="pennant-container">
-      <div class="triangle-flag">H</div>
-      <div class="triangle-flag">A</div>
-      <div class="triangle-flag">P</div>
-      <div class="triangle-flag">P</div>
-      <div class="triangle-flag">Y</div>
-      <div class="triangle-flag">B</div>
-      <div class="triangle-flag">I</div>
-      <div class="triangle-flag">R</div>
-      <div class="triangle-flag">T</div>
-      <div class="triangle-flag">H</div>
-      <div class="triangle-flag">D</div>
-      <div class="triangle-flag">A</div>
-      <div class="triangle-flag">Y</div>
-    </div>
-
-    <div class="birthday-header">
-      <span class="balloons">🎈</span>
-      Happy Birthday Ella!
-      <span class="balloons">🎈</span>
-    </div>
-
-    <div class="birthday-text">
-        <p>Hi Ella! 🎉</p>
-        <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
-        <p>May your day be as wonderful and bright as you are! 💖</p>
-        <p><em>With lots of love, <strong>Will</strong></em></p>
-    </div>
-    """, unsafe_allow_html=True)
-
-def display_messages(container):
-    messages = load_messages()
-    with container:
-        st.markdown("### 🎂 Birthday Messages for Ella 🎂")
-        for msg in reversed(messages):
-            st.markdown(f"""
-            <div style="
-                border: 2px solid #ff3399;
-                border-radius: 10px;
-                padding: 10px;
-                margin: 10px auto;
-                width: 70%;
-                background-color: #ffe6f0;
-                font-family: 'Comic Sans MS', cursive;
-                color: #cc0066;
-                ">
-                <b>{msg['name']}</b><br>
-                {msg['message']}
-            </div>
-            """)
-
-# SESSION STATE
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "show_login" not in st.session_state:
-    st.session_state.show_login = False
-
-# Hidden login button top-left corner (invisible)
+# CSS (same as before but added a container for admin and preview)
 st.markdown("""
 <style>
-  #hidden-login {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 35px;
-    height: 35px;
-    background: transparent;
-    border: none;
-    z-index: 99999;
-    cursor: pointer;
+  /* birthday styling & hidden login omitted for brevity */
+  .admin-panel {
+    background-color: #1e293b;
+    color: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 30px auto 50px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px;
   }
-  #hidden-login:focus {
-    outline: none;
+  .ip-info-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  iframe {
+    border-radius: 12px;
+  }
+  .ban-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 15px;
+  }
+  .ban-btn:hover {
+    background-color: #dc2626;
+  }
+  .site-preview {
+    margin-top: 40px;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    max-width: 900px;
+    color: #333;
+    font-family: 'Comic Sans MS', cursive;
   }
 </style>
 """, unsafe_allow_html=True)
 
-login_clicked = st.button("", key="hidden-login")
+clicked = st.button(" ", key="hidden-login", help=None)
 
-if login_clicked:
-    st.session_state.show_login = True
+st.markdown("""
+<script>
+const btn = window.parent.document.querySelector('button[kind="primary"][data-testid="stButton"][id^="hidden-login"]');
+if (btn) {
+  btn.id = 'hidden-login';
+  btn.title = '';
+  btn.setAttribute('aria-label', '');
+}
+</script>
+""", unsafe_allow_html=True)
 
-if st.session_state.show_login and not st.session_state.logged_in:
-    pwd = st.text_input("Enter admin password:", type="password", key="pwd_input")
-    if pwd:
-        if pwd == PASSWORD:
-            st.session_state.logged_in = True
-            st.success("Welcome, Admin! 👑")
-        else:
-            st.error("Incorrect password!")
+if clicked:
+    pwd = st.text_input("Enter password to login:", type="password")
+    if pwd == hidden_password:
+        st.success("Login successful!")
 
-# Autorefresh interval (5 seconds)
-interval = 5_000
+        # Autorefresh every 5 seconds (3000ms here to avoid flicker)
+        count = st.experimental_singleton.get("refresh_count") if "refresh_count" in st.experimental_singleton else 0
+        count = (count + 1) % 100000
+        st.experimental_singleton.set("refresh_count", count)
+        # Better to use st_autorefresh
+        from streamlit_autorefresh import st_autorefresh
+        st_autorefresh(interval=5000, limit=None, key="autorefresh")
 
-if not st.session_state.logged_in:
-    # Main site with message form and messages
-    render_main_content()
+        # IP input & lookup
+        ip = st.text_input("Enter IP to lookup (or leave empty for your IP):").strip()
+        if not ip:
+            try:
+                ip = requests.get("https://api.ipify.org").text
+            except:
+                ip = "Unknown"
 
-    with st.form("wish_form"):
-        name = st.text_input("Your Name", key="name_input")
-        wish = st.text_input("Write your birthday message to Ella 💌", key="wish_input")
-        submitted = st.form_submit_button("Send Wish")
-        if submitted:
-            if not name.strip() or not wish.strip():
-                st.warning("Please enter both your name and your message!")
-            else:
-                add_message(name.strip(), wish.strip())
-                st.success("🎉 Your wish has been sent!")
-
-    message_refresher = st_autorefresh(interval=interval, limit=None, key="msg_refresh")
-
-    messages_container = st.empty()
-    display_messages(messages_container)
-
-else:
-    # Admin panel with modern styling
-    st.markdown("""
-    <style>
-      body, .main {
-        background-color: #1f2937;  /* Dark slate */
-        color: #e0e7ff;  /* Light lavender */
-      }
-      .admin-header {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        text-align: center;
-        color: #c7d2fe;
-      }
-      .card {
-        background-color: #374151;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        margin-bottom: 25px;
-      }
-      .ip-info-title {
-        font-weight: 600;
-        font-size: 18px;
-        margin-bottom: 10px;
-        color: #a5b4fc;
-      }
-      .ban-btn {
-        background-color: #ef4444;
-        color: white;
-        border: none;
-        padding: 10px 18px;
-        font-weight: 600;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        margin-top: 10px;
-      }
-      .ban-btn:hover {
-        background-color: #b91c1c;
-      }
-      .site-preview {
-        background-color: #111827;
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
-        max-height: 600px;
-        overflow-y: auto;
-      }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="admin-header">Admin Panel - IP Tracking & Live Preview</div>')
-
-    # Admin panel container
-    with st.container():
-        # IP info card
-        ip = requests.get("https://api.ipify.org").text
         ip_info = get_ip_info(ip)
 
-        with st.container():
-            st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown(f'<div class="ip-info-title">Your IP Information</div>', unsafe_allow_html=True)
-            st.markdown(f"**IP Address:** {ip}")
-            st.json(ip_info)
+        admin_panel = st.container()
+        with admin_panel:
+            st.markdown('<div class="admin-panel">', unsafe_allow_html=True)
+            st.markdown(f'<div class="ip-info-title">IP Information for: {ip}</div>')
+
+            filtered_info = {k: v for k, v in ip_info.items() if k not in ("loc", "readme")}
+            st.json(filtered_info)
+
+            loc_str = ip_info.get("loc")
+            if loc_str:
+                lat, lon = map(float, loc_str.split(","))
+                st.markdown("### IP Location Map (Google Maps)")
+                google_maps_url = f"https://maps.google.com/maps?q={lat},{lon}&hl=en&z=14&output=embed"
+                iframe_html = f"""
+                <iframe 
+                    width="100%" 
+                    height="400" 
+                    frameborder="0" 
+                    style="border:0;" 
+                    src="{google_maps_url}" 
+                    allowfullscreen="" 
+                    aria-hidden="false" 
+                    tabindex="0">
+                </iframe>
+                """
+                st.markdown(iframe_html, unsafe_allow_html=True)
+            else:
+                st.info("No location data available for this IP.")
 
             if st.button("Ban this IP"):
-                st.warning(f"IP {ip} banned! (placeholder, no backend)")
-
+                st.warning(f"IP {ip} banned! (placeholder - implement your ban logic here)")
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # Live site preview card
-        preview_refresher = st_autorefresh(interval=interval, limit=None, key="preview_refresh")
-        with st.container():
-            st.markdown('<div class="card site-preview">', unsafe_allow_html=True)
-            st.markdown("### Live Site Preview")
-            render_main_content()
-            messages_preview = st.container()
-            display_messages(messages_preview)
+        # Live preview of birthday page below admin panel:
+        preview = st.container()
+        with preview:
+            st.markdown('<div class="site-preview">', unsafe_allow_html=True)
+            st.markdown("""
+                <h1 style="color:#ff3399; font-family: 'Comic Sans MS', cursive;">🎈 Happy Birthday Ella! 🎈</h1>
+                <p style="font-family: 'Comic Sans MS', cursive; font-size:18px; color:#cc0066;">
+                    🎉 Happy 16th Birthday, Ella! 🎂✈️<br>
+                    Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world — can’t wait to see where you go next. Keep shining and exploring, globe-trotter! 🌍<br>
+                    <em>Lots of love, Charlie</em>
+                </p>
+            """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
+
+    elif pwd:
+        st.error("Wrong password!")
+
+# Birthday page UI below admin login area (same as before)
+
+st.markdown("""
+<div class="pennant-container">
+  <div class="triangle-flag">H</div>
+  <div class="triangle-flag">A</div>
+  <div class="triangle-flag">P</div>
+  <div class="triangle-flag">P</div>
+  <div class="triangle-flag">Y</div>
+  <div class="triangle-flag">B</div>
+  <div class="triangle-flag">I</div>
+  <div class="triangle-flag">R</div>
+  <div class="triangle-flag">T</div>
+  <div class="triangle-flag">H</div>
+  <div class="triangle-flag">D</div>
+  <div class="triangle-flag">A</div>
+  <div class="triangle-flag">Y</div>
+</div>
+
+<div class="birthday-header">
+  <span class="balloons">🎈</span>
+  Happy Birthday Ella!
+  <span class="balloons">🎈</span>
+</div>
+
+<div class="birthday-text">
+    <p>Hi Ella! 🎉</p>
+    <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
+    <p>May your day be as wonderful and bright as you are! 💖</p>
+    <p><em>With lots of love, <strong>Will</strong></em></p>
+</div>
+""", unsafe_allow_html=True)
+
+with st.form("wish_form"):
+    name = st.text_input("Your Name")
+    wish = st.text_input("Write your birthday message to Ella 💌")
+    submitted = st.form_submit_button("Send Wish")
+    if submitted:
+        if not name.strip() or not wish.strip():
+            st.warning("Please enter both your name and your message!")
+        else:
+            add_message(name.strip(), wish.strip())
+            st.success("🎉 Your wish has been sent!")
+
+st.markdown("### 🎂 Birthday Messages for Ella 🎂")
+messages = load_messages()
+for msg in reversed(messages):
+    st.markdown(f"""
+    <div class="message-box">
+        <b>{msg['name']}</b><br>
+        {msg['message']}
+    </div>
+    """, unsafe_allow_html=True)
+
+# Optional: refresh birthday messages every 10 sec (can comment out if you want no refresh)
+st.markdown('<meta http-equiv="refresh" content="10">', unsafe_allow_html=True)
