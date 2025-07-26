@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime
 import json
 import os
+import time
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
@@ -29,7 +30,7 @@ def add_message(name, message):
     messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# CSS and layout
+# CSS and layout (same as before)
 st.markdown("""
 <style>
   .pennant-container {
@@ -142,17 +143,19 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# 🎂 Display messages
-st.markdown("### 🎂 Birthday messages for Ella 🎂")
+# Placeholder for messages that we will update live
+messages_placeholder = st.empty()
 
-messages = load_messages()
-for msg in reversed(messages):
-    st.markdown(f"""
-    <div class="message-box">
-        <b>{msg['name']}</b><br>
-        {msg['message']}
-    </div>
-    """, unsafe_allow_html=True)
-
-# 🔁 Auto-refresh every 5 seconds to show new wishes
-st.markdown('<meta http-equiv="refresh" content="5">', unsafe_allow_html=True)
+# Loop to update messages every 3 seconds
+while True:
+    messages = load_messages()
+    with messages_placeholder.container():
+        st.markdown("### 🎂 Birthday messages for Ella 🎂")
+        for msg in reversed(messages):
+            st.markdown(f"""
+            <div class="message-box">
+                <b>{msg['name']}</b><br>
+                {msg['message']}
+            </div>
+            """, unsafe_allow_html=True)
+    time.sleep(3)
