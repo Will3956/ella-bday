@@ -1,6 +1,5 @@
 import streamlit as st
 from datetime import datetime
-from PIL import Image
 import json
 import os
 
@@ -9,31 +8,28 @@ st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", lay
 # File to save messages
 MESSAGES_FILE = "messages.json"
 
-# Load messages from file or create empty list
+# Load messages
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
         with open(MESSAGES_FILE, "r") as f:
-            return json.load(f)
-    else:
-        return []
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return []
+    return []
 
-# Save messages to file
+# Save messages
 def save_messages(messages):
     with open(MESSAGES_FILE, "w") as f:
         json.dump(messages, f)
 
-# Add a new message to storage
+# Add new message
 def add_message(name, message):
     messages = load_messages()
-    messages.append({
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "name": name,
-        "message": message
-    })
+    messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# --- UI code below ---
-
+# CSS and layout
 st.markdown("""
 <style>
   .pennant-container {
@@ -51,7 +47,7 @@ st.markdown("""
     background: linear-gradient(135deg, #ff3399, #cc0066);
     clip-path: polygon(0 0, 100% 0, 50% 100%);
     color: white;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     font-weight: bold;
     font-size: 18px;
     display: flex;
@@ -62,7 +58,7 @@ st.markdown("""
   }
   .birthday-header {
     text-align: center;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     font-size: 48px;
     color: #ff3399;
     margin: 80px auto 10px;
@@ -74,7 +70,7 @@ st.markdown("""
   }
   .birthday-text {
     text-align: center;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     font-size: 22px;
     color: #ff3399;
     margin: 0 auto 30px;
@@ -86,11 +82,12 @@ st.markdown("""
     margin: 10px auto;
     width: 70%;
     background-color: #ffe6f0;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
 </style>
 
+<!-- Banner -->
 <div class="pennant-container">
   <div class="triangle-flag">H</div>
   <div class="triangle-flag">A</div>
@@ -107,6 +104,7 @@ st.markdown("""
   <div class="triangle-flag">Y</div>
 </div>
 
+<!-- Main Header -->
 <div class="birthday-header">
   <span class="balloons">🎈</span>
   Happy Birthday Ella!
@@ -118,17 +116,21 @@ st.markdown("""
     <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
     <p>May your day be as wonderful and bright as you are! 💖</p>
     <p><em>With lots of love, <strong>Will</strong></em></p>
+    <hr style="width:50%; border:1px solid #ff3399;">
+    <p>🎉 Happy 16th Birthday, Ella! 🎂✈️
+Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world—can’t wait to see where you go next. Keep shining and exploring!🌍</p>
+    <p><em>With lots of love, <strong>Charlie</strong></em></p>
 </div>
 """, unsafe_allow_html=True)
 
-# Birthday instrumental song autoplay
+# 🎶 Background birthday song
 st.markdown("""
-<audio autoplay loop>
+<audio autoplay>
   <source src="https://cdn.pixabay.com/download/audio/2023/03/19/audio_763c1e5705.mp3?filename=happy-birthday-instrumental-11603.mp3" type="audio/mpeg">
 </audio>
 """, unsafe_allow_html=True)
 
-# Birthday wish form with name input
+# 💌 Birthday message form
 with st.form("wish_form"):
     name = st.text_input("Your Name")
     wish = st.text_input("Write your birthday message to Ella 💌")
@@ -140,8 +142,8 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-# Show all messages live, newest first (without timestamp)
-st.markdown("### 🎂 Birthday Message for Ella 🎂")
+# 🎂 Display messages
+st.markdown("### 🎂 Birthday messages for Ella 🎂")
 
 messages = load_messages()
 for msg in reversed(messages):
@@ -151,3 +153,6 @@ for msg in reversed(messages):
         {msg['message']}
     </div>
     """, unsafe_allow_html=True)
+
+# 🔁 Auto-refresh every 5 seconds to show new wishes
+st.experimental_rerun()
