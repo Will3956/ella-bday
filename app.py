@@ -96,7 +96,7 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
-  /* Hidden login button */
+  /* Hidden login button - fully invisible */
   #hidden-login {
     position: fixed;
     top: 0;
@@ -110,7 +110,6 @@ st.markdown("""
     appearance: none;
     z-index: 10000;
     cursor: pointer;
-    /* Remove any tooltip or hover text */
   }
   #hidden-login:focus {
     outline: none;
@@ -118,51 +117,54 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Hidden login button (completely invisible, no tooltip)
 hidden_password = "P1cklesC@t"
 
-# Render the hidden button
-clicked = st.button(" ", key="hidden-login", help=None)
+# Using session_state to keep track of login state and password prompt visibility
+if "login_clicked" not in st.session_state:
+    st.session_state.login_clicked = False
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-# Trick to add the ID and attributes to the button element to prevent tooltip:
-st.markdown("""
-<script>
-const btn = window.parent.document.querySelector('button[kind="primary"][data-testid="stButton"][id^="hidden-login"]');
-if (btn) {
-  btn.id = 'hidden-login';
-  btn.title = '';
-  btn.setAttribute('aria-label', '');
-</script>
-""", unsafe_allow_html=True)
+# Render the invisible hidden login button
+clicked = st.button("", key="hidden-login")
 
 if clicked:
-    pwd = st.text_input("Enter password to login:", type="password")
-    if pwd == hidden_password:
-        st.success("Login successful!")
-        # Show IP info & preview here (simplified example)
-        ip = st.text_input("Enter IP to lookup (or leave empty for your IP):").strip()
-        if not ip:
-            try:
-                ip = requests.get("https://api.ipify.org").text
-            except:
-                ip = "Unknown"
-        ip_info = get_ip_info(ip)
-        st.write(f"IP Info for {ip}:")
-        st.json(ip_info)
-        # Preview message box for the site (simplified)
-        st.markdown("<h3>Site Preview</h3>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style='border: 2px solid #ff3399; border-radius:10px; padding:10px; background:#ffe6f0; color:#cc0066; font-family: Comic Sans MS, cursive; width: 70%; margin: 10px auto;'>
-            <b>Charlie</b><br>
-            🎉 Happy 16th Birthday, Ella! 🎂✈️<br>
-            Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world—can’t wait to see where you go next. Keep shining and exploring, globe-trotter! 🌍<br>
-            <em>Lots of love, Charlie</em>
-        </div>
-        """, unsafe_allow_html=True)
-    elif pwd:
-        st.error("Wrong password!")
+    st.session_state.login_clicked = True
 
-# Banner
+if st.session_state.login_clicked and not st.session_state.logged_in:
+    pwd = st.text_input("Enter password to login:", type="password", key="pwd_input")
+    if pwd:
+        if pwd == hidden_password:
+            st.session_state.logged_in = True
+            st.success("Login successful!")
+        else:
+            st.error("Wrong password!")
+
+if st.session_state.logged_in:
+    # Show IP info & preview
+    ip = st.text_input("Enter IP to lookup (or leave empty for your IP):", key="ip_input").strip()
+    if not ip:
+        try:
+            ip = requests.get("https://api.ipify.org").text
+        except Exception:
+            ip = "Unknown"
+
+    ip_info = get_ip_info(ip)
+    st.write(f"IP Info for {ip}:")
+    st.json(ip_info)
+
+    # Preview message box
+    st.markdown("<h3>Site Preview</h3>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='border: 2px solid #ff3399; border-radius:10px; padding:10px; background:#ffe6f0; color:#cc0066; font-family: Comic Sans MS, cursive; width: 70%; margin: 10px auto;'>
+        <b>Charlie</b><br>
+        🎉 Happy 16th Birthday, Ella! 🎂✈️<br>
+        Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world—can’t wait to see where you go next. Keep shining and exploring, globe-trotter! 🌍<br>
+        <em>Lots of love, Charlie</em>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Banner & main page content
 st.markdown("""
 <div class="pennant-container">
   <div class="triangle-flag">H</div>
@@ -196,8 +198,8 @@ st.markdown("""
 
 # Birthday message form and display
 with st.form("wish_form"):
-    name = st.text_input("Your Name")
-    wish = st.text_input("Write your birthday message to Ella 💌")
+    name = st.text_input("Your Name", key="name_input")
+    wish = st.text_input("Write your birthday message to Ella 💌", key="wish_input")
     submitted = st.form_submit_button("Send Wish")
     if submitted:
         if not name.strip() or not wish.strip():
@@ -216,5 +218,5 @@ for msg in reversed(messages):
     </div>
     """, unsafe_allow_html=True)
 
-# Auto refresh messages every 10 seconds (partial refresh)
+# Auto refresh messages every 10 seconds
 st.markdown('<meta http-equiv="refresh" content="10">', unsafe_allow_html=True)
