@@ -1,15 +1,13 @@
 import streamlit as st
-from datetime import datetime
 import json
 import os
 import requests
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Happy Birthday Ella! 🎂", page_icon="🎉", layout="centered")
 
-# File to save messages
 MESSAGES_FILE = "messages.json"
 
-# Load messages from file
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
         with open(MESSAGES_FILE, "r") as f:
@@ -19,28 +17,16 @@ def load_messages():
                 return []
     return []
 
-# Save messages to file
 def save_messages(messages):
     with open(MESSAGES_FILE, "w") as f:
         json.dump(messages, f)
 
-# Add a new message
 def add_message(name, message):
     messages = load_messages()
     messages.append({"name": name, "message": message})
     save_messages(messages)
 
-# Get IP info (using ipinfo.io API)
-def get_ip_info(ip):
-    try:
-        response = requests.get(f"https://ipinfo.io/{ip}/json")
-        if response.status_code == 200:
-            return response.json()
-    except Exception:
-        pass
-    return {}
-
-# CSS for the page and hidden login button
+# CSS + hidden login button as before
 st.markdown("""
 <style>
   .pennant-container {
@@ -96,7 +82,7 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
-  /* Hidden login button - fully invisible */
+  /* Hidden login button */
   #hidden-login {
     position: fixed;
     top: 0;
@@ -119,15 +105,12 @@ st.markdown("""
 
 hidden_password = "P1cklesC@t"
 
-# Using session_state to keep track of login state and password prompt visibility
 if "login_clicked" not in st.session_state:
     st.session_state.login_clicked = False
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# Render the invisible hidden login button
 clicked = st.button("", key="hidden-login")
-
 if clicked:
     st.session_state.login_clicked = True
 
@@ -140,63 +123,42 @@ if st.session_state.login_clicked and not st.session_state.logged_in:
         else:
             st.error("Wrong password!")
 
-if st.session_state.logged_in:
-    # Show IP info & preview
-    ip = st.text_input("Enter IP to lookup (or leave empty for your IP):", key="ip_input").strip()
-    if not ip:
-        try:
-            ip = requests.get("https://api.ipify.org").text
-        except Exception:
-            ip = "Unknown"
-
-    ip_info = get_ip_info(ip)
-    st.write(f"IP Info for {ip}:")
-    st.json(ip_info)
-
-    # Preview message box
-    st.markdown("<h3>Site Preview</h3>", unsafe_allow_html=True)
+# Banner and main page content (outside any container)
+def render_main_content():
     st.markdown("""
-    <div style='border: 2px solid #ff3399; border-radius:10px; padding:10px; background:#ffe6f0; color:#cc0066; font-family: Comic Sans MS, cursive; width: 70%; margin: 10px auto;'>
-        <b>Charlie</b><br>
-        🎉 Happy 16th Birthday, Ella! 🎂✈️<br>
-        Wishing you an amazing day filled with love, laughter, and adventure! You’ve already seen so much of the world—can’t wait to see where you go next. Keep shining and exploring, globe-trotter! 🌍<br>
-        <em>Lots of love, Charlie</em>
+    <div class="pennant-container">
+      <div class="triangle-flag">H</div>
+      <div class="triangle-flag">A</div>
+      <div class="triangle-flag">P</div>
+      <div class="triangle-flag">P</div>
+      <div class="triangle-flag">Y</div>
+      <div class="triangle-flag">B</div>
+      <div class="triangle-flag">I</div>
+      <div class="triangle-flag">R</div>
+      <div class="triangle-flag">T</div>
+      <div class="triangle-flag">H</div>
+      <div class="triangle-flag">D</div>
+      <div class="triangle-flag">A</div>
+      <div class="triangle-flag">Y</div>
+    </div>
+
+    <div class="birthday-header">
+      <span class="balloons">🎈</span>
+      Happy Birthday Ella!
+      <span class="balloons">🎈</span>
+    </div>
+
+    <div class="birthday-text">
+        <p>Hi Ella! 🎉</p>
+        <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
+        <p>May your day be as wonderful and bright as you are! 💖</p>
+        <p><em>With lots of love, <strong>Will</strong></em></p>
     </div>
     """, unsafe_allow_html=True)
 
-# Banner & main page content
-st.markdown("""
-<div class="pennant-container">
-  <div class="triangle-flag">H</div>
-  <div class="triangle-flag">A</div>
-  <div class="triangle-flag">P</div>
-  <div class="triangle-flag">P</div>
-  <div class="triangle-flag">Y</div>
-  <div class="triangle-flag">B</div>
-  <div class="triangle-flag">I</div>
-  <div class="triangle-flag">R</div>
-  <div class="triangle-flag">T</div>
-  <div class="triangle-flag">H</div>
-  <div class="triangle-flag">D</div>
-  <div class="triangle-flag">A</div>
-  <div class="triangle-flag">Y</div>
-</div>
+render_main_content()
 
-<div class="birthday-header">
-  <span class="balloons">🎈</span>
-  Happy Birthday Ella!
-  <span class="balloons">🎈</span>
-</div>
-
-<div class="birthday-text">
-    <p>Hi Ella! 🎉</p>
-    <p>Wishing you an amazing birthday filled with love, laughter, and lots of delicious cake 🍰.</p>
-    <p>May your day be as wonderful and bright as you are! 💖</p>
-    <p><em>With lots of love, <strong>Will</strong></em></p>
-</div>
-""", unsafe_allow_html=True)
-
-# Birthday message form and display
+# Message form
 with st.form("wish_form"):
     name = st.text_input("Your Name", key="name_input")
     wish = st.text_input("Write your birthday message to Ella 💌", key="wish_input")
@@ -208,15 +170,28 @@ with st.form("wish_form"):
             add_message(name.strip(), wish.strip())
             st.success("🎉 Your wish has been sent!")
 
-st.markdown("### 🎂 Birthday Messages for Ella 🎂")
-messages = load_messages()
-for msg in reversed(messages):
-    st.markdown(f"""
-    <div class="message-box">
-        <b>{msg['name']}</b><br>
-        {msg['message']}
-    </div>
-    """, unsafe_allow_html=True)
+# Partial refresh of messages only - refresh every 10 seconds
+count = st_autorefresh(interval=10_000, limit=None, key="message_autorefresh")
 
-# Auto refresh messages every 10 seconds
-st.markdown('<meta http-equiv="refresh" content="10">', unsafe_allow_html=True)
+messages_container = st.empty()
+
+def display_messages():
+    messages = load_messages()
+    with messages_container.container():
+        st.markdown("### 🎂 Birthday Messages for Ella 🎂")
+        for msg in reversed(messages):
+            st.markdown(f"""
+            <div class="message-box">
+                <b>{msg['name']}</b><br>
+                {msg['message']}
+            </div>
+            """, unsafe_allow_html=True)
+
+display_messages()
+
+# Admin panel preview (only if logged in)
+if st.session_state.logged_in:
+    st.markdown("---")
+    st.markdown("## Admin Panel Preview (Live Site Content)")
+    # Show exact current page content preview (reuse render_main_content)
+    render_main_content()
