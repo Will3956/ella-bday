@@ -89,7 +89,7 @@ st.markdown("""
     font-family: 'Comic Sans MS', cursive;
     color: #cc0066;
   }
-  /* Hidden login button */
+  /* Hidden login button: completely invisible, no pointer change */
   #hidden-login {
     position: fixed;
     top: 0;
@@ -98,12 +98,12 @@ st.markdown("""
     height: 30px;
     background: transparent;
     border: none;
-    cursor: pointer;
     z-index: 10000;
+    cursor: default;
+    outline: none;
   }
   #hidden-login:hover {
-    background: rgba(255, 51, 153, 0.15);
-    border-radius: 5px;
+    background: transparent !important;
   }
 </style>
 
@@ -147,7 +147,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Hidden login button form
-login_clicked = st.button(" ", key="hidden-login", help="Hidden admin login (top-left corner)")
+login_clicked = st.button("", key="hidden-login")
 
 if login_clicked:
     password_input = st.text_input("Enter admin password:", type="password")
