@@ -1,48 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Admin Panel</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #ip-map { 
-      width: 600px; 
-      height: 400px; 
-      background: #eee; 
-      margin-bottom: 20px; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      color: #555;
-      border: 1px solid #ccc;
-      user-select: none;
-    }
-    #ban-section { margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <h1>Admin Panel - Website Overview</h1>
-  <p>Welcome, admin! Here’s the website status and controls.</p>
+import streamlit as st
+import requests
 
-  <h2>IP Tracking Map</h2>
-  <div id="ip-map">[IP map placeholder]</div>
+hidden_password = "P1cklesC@t"
 
-  <h2>Ban IP Address</h2>
-  <input type="text" id="ip-to-ban" placeholder="Enter IP to ban" />
-  <button onclick="banIP()">Ban IP</button>
-  <p id="ban-message"></p>
+def get_ip_info(ip):
+    try:
+        response = requests.get(f"https://ipinfo.io/{ip}/json")
+        if response.status_code == 200:
+            return response.json()
+    except Exception:
+        pass
+    return {}
 
-  <script>
-    function banIP() {
-      const ip = document.getElementById('ip-to-ban').value.trim();
-      if (ip) {
-        // Dummy ban logic - replace with real backend call as needed
-        document.getElementById('ban-message').textContent = `IP ${ip} banned! (Dummy action)`;
-        document.getElementById('ip-to-ban').value = '';
-      } else {
-        document.getElementById('ban-message').textContent = 'Please enter a valid IP address.';
-      }
-    }
-  </script>
-</body>
-</html>
+# Your existing code above...
+
+clicked = st.button(" ", key="hidden-login", help=None)
+
+if clicked:
+    pwd = st.text_input("Enter password to login:", type="password")
+    if pwd == hidden_password:
+        st.success("Login successful!")
+
+        ip = st.text_input("Enter IP to lookup (or leave empty for your IP):").strip()
+        if not ip:
+            try:
+                ip = requests.get("https://api.ipify.org").text
+            except:
+                ip = "Unknown"
+
+        ip_info = get_ip_info(ip)
+
+        st.markdown("""
+        <style>
+        .admin-panel {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .ip-info-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .ban-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .ban-btn:hover {
+            background-color: #dc2626;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div class="admin-panel">', unsafe_allow_html=True)
+        st.markdown(f'<div class="ip-info-title">IP Information for: {ip}</div>')
+
+        # Show IP info except loc to avoid clutter
+        filtered_info = {k: v for k, v in ip_info.items() if k != "loc" and k != "readme"}
+        st.json(filtered_info)
+
+        # Show map if loc available
+        loc_str = ip_info.get("loc")
+        if loc_str:
+            lat, lon = map(float, loc_str.split(","))
+            st.markdown("### IP Location Map")
+            st.map(data={"lat": [lat], "lon": [lon]})
+        else:
+            st.info("No location data available for this IP.")
+
+        if st.button("Ban this IP"):
+            st.warning(f"IP {ip} banned! (placeholder - implement your ban logic here)")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    elif pwd:
+        st.error("Wrong password!")
