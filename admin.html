@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #ip-map { 
+      width: 600px; 
+      height: 400px; 
+      background: #eee; 
+      margin-bottom: 20px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      color: #555;
+      border: 1px solid #ccc;
+      user-select: none;
+    }
+    #ban-section { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Admin Panel - Website Overview</h1>
+  <p>Welcome, admin! Here’s the website status and controls.</p>
+
+  <h2>IP Tracking Map</h2>
+  <div id="ip-map">[IP map placeholder]</div>
+
+  <h2>Ban IP Address</h2>
+  <input type="text" id="ip-to-ban" placeholder="Enter IP to ban" />
+  <button onclick="banIP()">Ban IP</button>
+  <p id="ban-message"></p>
+
+  <script>
+    function banIP() {
+      const ip = document.getElementById('ip-to-ban').value.trim();
+      if (ip) {
+        // Dummy ban logic - replace with real backend call as needed
+        document.getElementById('ban-message').textContent = `IP ${ip} banned! (Dummy action)`;
+        document.getElementById('ip-to-ban').value = '';
+      } else {
+        document.getElementById('ban-message').textContent = 'Please enter a valid IP address.';
+      }
+    }
+  </script>
+</body>
+</html>
